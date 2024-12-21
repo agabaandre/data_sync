@@ -1,253 +1,209 @@
-<div id="top"></div>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
+# README
+
+## Introduction
+This project is designed to automate the retrieval and transfer of files from a secure online platform (**ems.africacdc.org**) to a remote server via **SFTP**. It uses modern tools to handle web interactions, file downloads, and secure file transfers.
 
+## Key Features
+- Automates scheduled tasks using **node-cron**.
+- Interacts with a secure web interface using **Puppeteer**.
+- Downloads and saves necessary files locally.
+- Transfers files to a remote server via **SFTP**.
+
+---
+
+## How the Process Works
+This project is built to function seamlessly by automating complex tasks in a structured pipeline. Here's how the process works:
+
+1. **Authentication and Navigation**:
+   - The script uses Puppeteer to open a headless browser, simulating a real user logging into the platform.
+   - It navigates to the login page and submits credentials securely fetched from the `.env` file.
+   - After logging in, the script retrieves an authentication cookie (`JSESSIONID`), which is necessary for subsequent API interactions.
+
+2. **Fetching and Downloading Files**:
+   - The script references `downloadLinks.js`, which contains the URLs and filenames of the data files to be downloaded.
+   - Using `axios`, the script sends HTTP requests with the authentication cookie to fetch the specified files.
+   - Each file is saved locally with a specified name.
+
+3. **Secure File Transfer (SFTP)**:
+   - Once files are downloaded, the script connects to a remote SFTP server using credentials stored in the `.env` file.
+   - The `ssh2-sftp-client` library handles this connection and securely transfers each file to the specified directory on the remote server.
+
+4. **Scheduled Automation**:
+   - The script uses `node-cron` to automate the entire process. By default, it runs every Sunday at midnight.
+   - This ensures regular updates without requiring manual intervention.
+
+5. **Logging and Debugging**:
+   - Throughout the process, detailed logs are generated to track successes, failures, and potential errors.
+   - These logs help diagnose issues quickly, ensuring the reliability of the script.
+
+---
+
+## Prerequisites
+### Required Tools:
+1. **Node.js** (v16 or later recommended)
+2. **Google Chrome** or **Chromium** installed locally for Puppeteer to function.
+3. The following npm modules (full list in `package.json`):
+   - `puppeteer`
+   - `ssh2-sftp-client`
+   - `node-cron`
+   - `dotenv`
+   - `axios`
+
+### `.env` File
+You need to create a `.env` file at the root of the project containing the required sensitive information:
+
+```
+J_USERNAME=your_username_here
+J_PASSWORD=your_password_here
+SSH_HOST=your_sftp_server
+SSH_USERNAME=your_sftp_username
+SSH_PASSWORD=your_sftp_password
+```
+
+### Chrome Configuration for Puppeteer
+Puppeteer requires **Google Chrome** or **Chromium**. If these browsers are unavailable or cannot be automatically detected, you can install them with the following command:
+```bash
+npx puppeteer browsers install chrome
+```
+
+---
+
+## Project Structure
+
+### **Main Files**
+
+1. **`index.js`**
+   - Contains the main logic to launch the synchronization process.
+   - Implements a **cron job** to automate execution every Sunday at midnight.
+
+2. **`downloadLinks.js`**
+   - Contains the list of files to download, along with their URLs and corresponding filenames.
+
+3. **`utils.js`**
+   - Defines utility functions such as:
+     - `getSessionCookie`: Retrieves the session cookie after authentication.
+     - `downloadFiles`: Downloads files from the provided links.
+
+4. **`config.js`**
+   - Centralizes configurations for Puppeteer and SFTP.
+
+---
+
+## Installation and Usage
+
+### Step 1: Install Dependencies
+Run the following command in the project directory:
+```bash
+npm install
+```
+
+### Step 2: Configure the Environment
+Create a `.env` file with your information (see the Prerequisites section).
+
+### Step 3: Install Chrome for Puppeteer
+Ensure Puppeteer has access to Google Chrome by running:
+```bash
+npx puppeteer browsers install chrome
+```
+
+### Step 4: Run the Script Manually
+You can manually execute the script to test the process:
+```bash
+node index.js
+```
+
+### Step 5: Automate with Cron
+The script is automatically executed every Sunday at midnight using **node-cron**.
+
+### Force the download 
+To force the download of the files, we execute:
+```bash
+node index.js --force
+```
+---
+
+## Modules Used
+
+### 1. **Puppeteer**
+- **Usage**: Automates interactions with the web interface.
+- **Purpose**: Simulates a user logging in, fetching data, and interacting with the platform programmatically.
+
+### 2. **ssh2-sftp-client**
+- **Usage**: Securely transfers files to an SFTP server.
+- **Purpose**: Ensures the downloaded data is safely moved to a remote server.
+
+### 3. **node-cron**
+- **Usage**: Schedules the automatic execution of the script.
+- **Purpose**: Eliminates the need for manual intervention by automating periodic runs.
+
+### 4. **dotenv**
+- **Usage**: Loads sensitive environment variables (e.g., credentials).
+- **Purpose**: Keeps sensitive information out of the codebase for better security.
+
+### 5. **axios**
+- **Usage**: Downloads files from URLs.
+- **Purpose**: Handles HTTP requests efficiently for fetching data files.
+
+---
+
+## Important Notes
+- **Security**: Never share your `.env` file or credentials.
+- **Debugging**: Console logs provide detailed information to diagnose potential issues.
+- **Customization**: You can modify the `downloadLinks.js` file to add or remove files for synchronization.
+
+---
+
+## Next Steps: Deploy on a Server
+To ensure the script runs continuously and reliably:
+1. **Deploy to a Dedicated Server**:
+   - Use a VPS or a cloud-based server (e.g., AWS, Azure, DigitalOcean).
+
+2. **Run as a Background Process**:
+   - Use **PM2** or similar tools to manage the script.
+   - Install PM2 globally:
+     ```bash
+     npm install -g pm2
+     ```
+   - Start the script with PM2:
+     ```bash
+     pm2 start index.js --name "file-sync"
+     ```
+   - Ensure it restarts automatically on server reboot:
+     ```bash
+     pm2 startup
+     pm2 save
+     ```
+
+3. **Containerize with Docker**:
+   - Create a `Dockerfile` for the project:
+     ```dockerfile
+     FROM node:16
+
+     WORKDIR /app
+
+     COPY package*.json ./
+     RUN npm install
+
+     COPY . .
+
+     CMD ["node", "index.js"]
+     ```
+   - Build and run the Docker container:
+     ```bash
+     docker build -t file-sync .
+     docker run -d --name file-sync file-sync
+     ```
+
+4. **Monitor Logs and Performance**:
+   - Use tools like **PM2 logs** or Docker logs to monitor execution.
+
+---
+
+## Contributions
+For any improvements or suggestions, please open an issue or submit a pull request on the associated GitHub repository.
+
+---
+
+## Author
+Code written and documented by **TANDOU Lenny**, tailored for professional automated use.
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
-  <h3 align="center">Best-README-Template</h3>
-
-  <p align="center">
-    An awesome README template to jumpstart your projects!
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
-  </p>
-</div>
-
-
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-### Built With
-
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [Next.js](https://nextjs.org/)
-* [React.js](https://reactjs.org/)
-* [Vue.js](https://vuejs.org/)
-* [Angular](https://angular.io/)
-* [Svelte](https://svelte.dev/)
-* [Laravel](https://laravel.com)
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Project-Name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [] Add Additional Templates w/ Examples
-- [] Add "components" document to easily copy & paste sections of the readme
-- [] Multi-language Support
-    - [] Chinese
-    - [] Spanish
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
-## License
-
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
-## Contact
-
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
