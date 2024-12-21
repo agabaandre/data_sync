@@ -57,7 +57,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 4000;
 
-app.use('/api', require('./routes'));
+app.use('/mpox_data/api', require('./routes'));
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
@@ -66,6 +66,12 @@ app.listen(PORT, () => {
 if (process.argv.includes('--force')) {
   console.log('Force execution triggered');
   syncProcess()
-    .then(() => console.log('Force execution completed successfully'))
-    .catch(error => console.error('Error during force execution:', error));
+    .then(() => {
+      console.log('Force execution completed successfully');
+      process.exit(0); 
+    })
+    .catch(error => {
+      console.error('Error during force execution:', error);
+      process.exit(1); 
+    });
 }
